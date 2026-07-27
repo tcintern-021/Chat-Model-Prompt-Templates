@@ -5,7 +5,6 @@ from typing import Dict, Any
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Ensure UTF-8 output on Windows terminals
@@ -24,7 +23,10 @@ if not api_key:
         "API Key missing! Please set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file."
     )
 
-# Initialize Gemini / Gemma LLM
+# =====================================================================
+# 1. CREATE YOUR FIRST CHAT MODEL
+# =====================================================================
+# Initializing Google Generative AI (Gemini/Gemma) wrapper
 llm = ChatGoogleGenerativeAI(
     model="gemma-4-26b-a4b-it",
     google_api_key=api_key,
@@ -32,51 +34,70 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.7,
 )
 
-# Output Parser
+# Output Parser: Transforms raw LLM message output into a clean string
 output_parser = StrOutputParser()
 
-# Chain 1: Restaurant Name & Branding Generation
-prompt_name = PromptTemplate.from_template(
-    "Suggest 3 elegant fine-dining restaurant names for {cuisine} cuisine along with a brief atmosphere description for each.\n"
-    "Output ONLY the 3 items in this exact format without any introductory notes or scratchpad:\n"
-    "1. [Name] - [Description]\n"
-    "2. [Name] - [Description]\n"
-    "3. [Name] - [Description]"
-)
-name_chain = prompt_name | llm | output_parser
+# =====================================================================
+# 2. EXPERIMENT WITH PROMPT TEMPLATES
+# =====================================================================
+# Asking the exact same core question using 3 completely different prompt templates
+# to observe how phrasing and persona alter the model's response.
 
-# Chain 2: Gourmet Menu Generation
-prompt_menu = PromptTemplate.from_template(
-    "Given this restaurant branding concept:\n{restaurant_name}\n\n"
-    "Create a single curated gourmet menu featuring sections for Antipasti, Main Courses, and Desserts.\n"
-    "Under each section, list 3 signature dishes with enticing descriptions.\n"
-    "Start immediately with the heading 'Antipasti' without any introductory notes or scratchpad."
-)
-menu_chain = prompt_menu | llm | output_parser
+core_question = "What is LangChain and why should developers use it instead of calling LLM APIs directly?"
 
-# Sequential Pipeline (Modern LCEL)
-restaurant_pipeline = RunnablePassthrough.assign(
-    restaurant_name=name_chain
-).assign(menu_items=menu_chain)
+templates = {
+    "1. Explain Like I'm 5 (ELI5)": """You are explaining concepts to a 5-year-old child.
+Use fun analogies like Lego bricks or building blocks. Keep it simple and under 3 sentences.
+Do NOT include any preliminary reasoning, scratchpad, or meta-commentary. Output ONLY the final explanation directly.
+
+Question: {question}""",
+
+    "2. Senior AI Systems Architect": """You are a Senior AI Systems Architect addressing a software engineering team.
+Focus on architectural advantages: modularity, model-agnostic design, LCEL (LangChain Expression Language) pipelines, and structured output parsing.
+Use professional technical terminology and concise bullet points.
+Do NOT include any preliminary reasoning, scratchpad, or meta-commentary. Output ONLY the final explanation directly.
+
+Question: {question}""",
+
+    "3. 17th-Century Pirate Captain": """Ahoy! You are a seasoned pirate captain who is also an expert AI engineer.
+Explain the answer using hearty pirate slang, seafaring metaphors, and treasure-hunting analogies!
+Do NOT include any preliminary reasoning, scratchpad, or meta-commentary. Output ONLY the final speech directly.
+
+Question: {question}"""
+}
 
 
-def generate_restaurant_concept(cuisine: str = "Italian") -> Dict[str, Any]:
-    """Execute the restaurant branding and menu generation pipeline."""
-    return restaurant_pipeline.invoke({"cuisine": cuisine})
+def run_prompt_experiments() -> Dict[str, str]:
+    """Execute the LCEL chains across different prompt templates."""
+    results = {}
+    for persona, template_str in templates.items():
+        # Build Prompt Template
+        prompt = PromptTemplate.from_template(template_str)
+        
+        # Build LCEL Pipeline (Prompt -> LLM -> Parser)
+        chain = prompt | llm | output_parser
+        
+        # Invoke chain
+        response = chain.invoke({"question": core_question})
+        results[persona] = response.strip()
+    return results
 
 
 if __name__ == "__main__":
-    cuisine_type = "Italian"
-    print(f"🚀 Running AI Restaurant Branding & Menu Generator for [{cuisine_type}] cuisine...\n")
+    print("=" * 75)
+    print("🦜🔗 AI ENGINEERING TRACK: INTRODUCTION TO LANGCHAIN")
+    print("=" * 75)
+    print(f"Core Question: '{core_question}'\n")
+    print("Executing LCEL pipelines across 3 distinct Prompt Templates...\n")
 
-    response = generate_restaurant_concept(cuisine_type)
+    experiment_results = run_prompt_experiments()
 
-    print("=" * 50)
-    print("🍽️ RESTAURANT BRANDING & CONCEPT")
-    print("=" * 50)
-    print(response["restaurant_name"])
-
-    print("\n" + "=" * 50)
-    print("📜 GOURMET MENU CURATION")
-    print("=" * 50)
-    print(response["menu_items"])
+    for persona, answer in experiment_results.items():
+        print("-" * 75)
+        print(f"🎭 PROMPT TEMPLATE: {persona}")
+        print("-" * 75)
+        print(answer)
+        print("\n")
+    print("=" * 75)
+    print("✅ Experimentation complete! Check README.md for architecture deep-dive.")
+    print("=" * 75)
