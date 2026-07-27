@@ -1,10 +1,3 @@
-"""
-AI Restaurant Branding & Gourmet Menu Generator
-===============================================
-A LangChain-powered sequential pipeline using Google Gemini/Gemma models.
-Generates fine-dining restaurant branding concepts and structured gourmet menus.
-"""
-
 import os
 import sys
 from typing import Dict, Any
