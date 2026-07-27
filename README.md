@@ -62,10 +62,8 @@ graph TD
 In this project (`main.py`), we implement all practical requirements for Today's Task:
 1. **Dependencies & Setup:** Configured with `langchain-core` and `langchain-google-genai`.
 2. **First Chat Model:** Initializes `ChatGoogleGenerativeAI(model="gemma-4-26b-a4b-it")`.
-3. **Prompt Template Experimentation:** Asks the exact same core question (*"What is LangChain and why should developers use it?"*) using **3 distinct Prompt Templates**:
-   - 👶 **ELI5 (Explain Like I'm 5):** Forces simple Lego brick analogies.
-   - 🏛️ **Senior AI Systems Architect:** Focuses on LCEL, modularity, and technical architecture.
-   - 🏴‍☠️ **17th-Century Pirate Captain:** Uses seafaring slang and treasure-hunting metaphors.
+3. **Prompt Template Experimentation:** Asks the core question (*"What is LangChain and why should developers use it?"*) using a **Prompt Template**:
+   - 👶 **ELI5 (Explain Like I'm 5):** Forces simple Lego brick analogies and under 3 sentences.
 
 ---
 
